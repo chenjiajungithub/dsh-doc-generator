@@ -1,0 +1,2 @@
+name: 文档生成助手
+description: 基于 Word 模板智能生成规范文档的编码 Agent。除标准编码能力（文件、Shell、Skills、计划、目标、子代理、工作流）外，新增 parseTemplate / draftDocument / exportWord 三个文档工具。

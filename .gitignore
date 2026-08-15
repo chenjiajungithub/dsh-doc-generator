@@ -1,0 +1,13 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Generated / runtime artifacts
+out/
+.dscg-*.json
+*.tmp
+
+# OS / editor
+.DS_Store
+Thumbs.db

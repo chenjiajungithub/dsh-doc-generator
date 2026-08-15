@@ -1,0 +1,28 @@
+{
+  "name": "dsh-doc-generator",
+  "version": "1.0.0",
+  "description": "基于 Word 模板智能生成规范文档的 DeepSeek Harness Agent preset / 插件。A DeepSeek Harness agent preset that generates compliant documents from Word (.docx) templates via an LLM.",
+  "license": "MIT",
+  "main": "index.mjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "cordis",
+    "agent-preset",
+    "docx",
+    "word",
+    "document-generation",
+    "template"
+  ],
+  "dependencies": {
+    "docx": "^9",
+    "mammoth": "^1"
+  },
+  "scripts": {
+    "test:parse": "node dscg-lib/parse-template.js --help",
+    "test:generate": "node dscg-lib/generate-docx.js --help"
+  }
+}
