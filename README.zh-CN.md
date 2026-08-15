@@ -75,22 +75,83 @@ npm install        # 安装 docx + mammoth
 
 `npm install` 之后，插件的 `depsRoot` 默认指向仓库根目录，无需额外配置。
 
-### 作为 DeepSeek Harness agent preset 部署
+### 作为 DeepSeek Harness agent preset 部署 —— 直接 git clone 指引
 
-把本仓库拷到用户 preset 根目录，然后在 Harness UI 选择它：
+本仓库根目录**就是**该 preset 目录，所以部署 = 把仓库 clone（或拷贝）到 Harness 的
+用户 preset 根目录，再 `npm install`。
+
+#### 前置条件
+
+- 一个已启用 agent preset 的 DeepSeek Harness 部署（`agent-presets` 目录从
+  `${DSH_HOME}/.agent-presets` 读取 preset，`DSH_HOME` 缺省为 `${HOME}/.dsh`）。
+- [Node.js](https://nodejs.org) ≥ 18 与 `npm`（用于安装 `docx` + `mammoth`）。
+- `git`（仅当你想要 clone / 保持同步的工作流时需要）。
+
+#### 第 1 步 —— clone
 
 ```bash
-# 假设 $DSH_HOME=${HOME}/.dsh
-cp -r dsh-doc-generator "${DSH_HOME}/.agent-presets/dsh-doc-generator"
-cd "${DSH_HOME}/.agent-presets/dsh-doc-generator" && npm install
+git clone https://github.com/chenjiajungithub/dsh-doc-generator.git
+cd dsh-doc-generator        # 默认检出 master 分支
 ```
 
-在 Web UI 里选择 **文档生成助手** preset 并新建会话。会话中应出现
-`parseTemplate` / `draftDocument` / `exportWord` 三个工具。
+#### 第 2 步 —— 安装依赖
 
-> DeepSeek Harness Loader 对相对路径插件走 **Node ESM import，并按文件 URL 缓存**
-> 导入结果。若在宿主运行期间修改了 `index.mjs`，请**重启 harness**，否则会加载到
-> 旧模块。
+```bash
+npm install
+```
+
+唯一运行时依赖是 `docx` 与 `mammoth`。安装后插件的 `depsRoot` 默认指向检出目录，
+无需额外配置。
+
+#### 第 3 步 —— 放到 agent-presets 根目录
+
+```bash
+# 假设 DSH_HOME=${HOME}/.dsh —— 若你设了其他 DSH_HOME 请相应调整。
+cp -R dsh-doc-generator "${DSH_HOME}/.agent-presets/dsh-doc-generator"
+```
+
+> 不含 git 的替代方式：直接 clone 到 preset 根下的新目录并安装依赖：
+>
+> ```bash
+> mkdir -p "${DSH_HOME}/.agent-presets"
+> git clone https://github.com/chenjiajungithub/dsh-doc-generator.git \
+>   "${DSH_HOME}/.agent-presets/dsh-doc-generator"
+> cd "${DSH_HOME}/.agent-presets/dsh-doc-generator" && npm install
+> ```
+
+#### 第 4 步 —— 在该 preset 上新建会话
+
+在 Web UI 打开 preset 选择器，选择 **文档生成助手**（Document Generator），然后
+新建一个会话。会话工具列表应包含 `parseTemplate`、`draftDocument`、`exportWord`。
+
+在已知目录做快速自检：
+
+```bash
+node --check index.mjs                       # 插件模块是合法 ESM
+node --check dscg-lib/parse-template.js      # 辅助脚本是合法 CommonJS
+node --check dscg-lib/generate-docx.js
+```
+
+#### 发布后更新
+
+```bash
+cd "${DSH_HOME}/.agent-presets/dsh-doc-generator"
+git pull          # 拉取最新 master
+npm install       # 若 lockfile 有变化则刷新依赖
+```
+
+> **重要 —— 更新后重启。** Harness Loader 对相对路径插件走 **Node ESM import，
+> 并按文件 URL 缓存**导入结果。若在宿主运行期间修改 `index.mjs`（或 `git pull`
+> 到新版本），请**重启 Harness**，否则会加载到旧模块。
+
+#### 故障排查
+
+| 现象 | 原因 / 处理 |
+| --- | --- |
+| `cannot get property "tools" without inject` | 修复前缓存的旧模块 —— 重启 Harness 进程。 |
+| `tool ... must declare output { schema, render, presentationMeta? }` | 并非运行时配置问题；已发布的插件自带 `output` —— 确保在最新 `master` 并已重启。 |
+| 模型提示 `no provider/model selection available` | 会话路由上未配置 DeepSeek provider/model —— 在设置中配置。 |
+| `exportWord` 未产出文件 | 确认模板路径是真实 `.docx`，且 output 路径可写（或 `<preset>/out` 可写）。 |
 
 ## 配置
 

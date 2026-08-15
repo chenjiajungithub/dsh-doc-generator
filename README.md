@@ -81,22 +81,88 @@ npm install        # installs docx + mammoth
 After `npm install`, the plugin's `depsRoot` defaults to this repository root, so
 no extra configuration is needed.
 
-### Deploy as a DeepSeek Harness agent preset
+### Deploy as a DeepSeek Harness agent preset — quick clone guide
 
-Copy this repository into the user preset root, then pick it in the Harness UI:
+The repository root **is** the preset directory, so deploying is a clone (or copy)
+into your Harness user-preset root plus an `npm install`.
+
+#### Prerequisites
+
+- A DeepSeek Harness deployment running with agent presets enabled (the
+  `agent-presets` roster mounts presets from `${DSH_HOME}/.agent-presets`, where
+  `DSH_HOME` defaults to `${HOME}/.dsh`).
+- [Node.js](https://nodejs.org) ≥ 18 and `npm` on `PATH` (to install `docx` +
+  `mammoth`).
+- `git` (only if you want the clone/keep-in-sync workflow).
+
+#### Step 1 — clone
 
 ```bash
-# assuming $DSH_HOME=${HOME}/.dsh
-cp -r dsh-doc-generator "${DSH_HOME}/.agent-presets/dsh-doc-generator"
-cd "${DSH_HOME}/.agent-presets/dsh-doc-generator" && npm install
+git clone https://github.com/chenjiajungithub/dsh-doc-generator.git
+cd dsh-doc-generator        # branch `master` is checked out
 ```
 
-In the Web UI choose the **文档生成助手** (Document Generator) preset and start a
-session. The session should expose `parseTemplate`, `draftDocument`, `exportWord`.
+#### Step 2 — install dependencies
 
-> The DeepSeek Harness Loader imports relative-path plugins through the **Node ESM
-> module cache keyed by file URL**. If you edit `index.mjs` while the host is
-> running, **restart the harness** so the corrected module is imported afresh.
+```bash
+npm install
+```
+
+`docx` and `mammoth` are the only runtime dependencies. After this, the plugin's
+`depsRoot` defaults to the checked-out directory, so no extra config is needed.
+
+#### Step 3 — place it under the agent-presets root
+
+```bash
+# Assuming DSH_HOME=${HOME}/.dsh — adjust to your real DSH_HOME if set.
+cp -R dsh-doc-generator "${DSH_HOME}/.agent-presets/dsh-doc-generator"
+```
+
+> Alternative without `git`: just clone straight into a fresh directory under the
+> preset root and run `npm install` there:
+>
+> ```bash
+> mkdir -p "${DSH_HOME}/.agent-presets"
+> git clone https://github.com/chenjiajungithub/dsh-doc-generator.git \
+>   "${DSH_HOME}/.agent-presets/dsh-doc-generator"
+> cd "${DSH_HOME}/.agent-presets/dsh-doc-generator" && npm install
+> ```
+
+#### Step 4 — start a session on the preset
+
+In the Web UI, open the preset picker and choose **文档生成助手** (Document
+Generator), then create a new session. The session tool list should include
+`parseTemplate`, `draftDocument`, and `exportWord`.
+
+Sanity check on an empty box:
+
+```bash
+node --check index.mjs                       # plugin module is valid ESM
+node --check dscg-lib/parse-template.js      # helper is valid CommonJS
+node --check dscg-lib/generate-docx.js
+```
+
+#### Updating after a release
+
+```bash
+cd "${DSH_HOME}/.agent-presets/dsh-doc-generator"
+git pull          # bring in the latest master
+npm install       # refresh deps if the lockfile changed
+```
+
+> **Important — restart after an update.** The Harness Loader imports
+> relative-path plugins through the **Node ESM module cache keyed by file URL**.
+> If you edit `index.mjs` (or `git pull` a newer one) while the host is running,
+> **restart the Harness** so the corrected module is imported afresh.
+
+#### Troubleshooting
+
+| Symptom | Cause / fix |
+| --- | --- |
+| `cannot get property "tools" without inject` | Stale cached module from before a fix — restart the Harness process. |
+| `tool ... must declare output { schema, render, presentationMeta? }` | Not a runtime config issue; the shipped plugin already declares `output` — make sure you are on the latest `master` and restarted. |
+| Model says `no provider/model selection available` | No DeepSeek provider/model is configured on the session's route; configure one in settings. |
+| `exportWord` fails to produce a file | Confirm the template path is a real `.docx` and that a writable output path is given (or that `<preset>/out` is writable). |
 
 ## Configuration
 
