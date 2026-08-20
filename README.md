@@ -1,3 +1,13 @@
+<!-- deepseek-harness-meta 
+{
+    "name": "预设模式-文档生成助手",
+    "version": "1.0.0",
+    "tags": ["deepseek", "harness","doc"], 
+    "description": "帮助你生成word文档",
+    "icon": "./img/icon.png"
+}
+-->
+
 # dsh-doc-generator
 
 > A DeepSeek Harness **agent preset** that generates compliant documents from a
