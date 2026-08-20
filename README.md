@@ -4,7 +4,9 @@
     "version": "1.0.0",
     "tags": ["deepseek", "harness","doc"], 
     "description": "帮助你生成word文档",
-    "icon": "./img/icon.png"
+    "icon": "./img/icon.png"，
+    "compatible_versions": ["v0.0.1", "v1.1.0"], 
+    "screenshots": "./img/screenshot"
 }
 -->
 
